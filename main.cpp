@@ -150,97 +150,122 @@
 // };
 
 // O(nlog(n)) solution
-// #include <iostream>
-// #include <vector>
-// #include <iterator>
-// #include <algorithm>
-
-// class solution {
-//   public:
-//     int lengthOfLIS(const std::vector<int> & nums) {
-//         std::vector<std::vector<int>> vecs;
-//         for (auto & n : nums) {
-//             if (vecs.empty()) {
-//                 vecs.push_back(std::vector<int>{n});
-//                 continue;
-//             }
-//             auto it = vecs.begin();
-//             while (it != vecs.end() && it->back() < n)
-//                 ++it;
-//             if (it == vecs.end()) {
-//                 auto temp = vecs.back();
-//                 temp.push_back(n);
-//                 vecs.emplace_back(std::move(temp));
-//             }
-//             else if (it == vecs.begin()) {
-//                 vecs.insert(vecs.begin(), std::vector<int>{n});
-//             }
-//             else {
-//                 auto prev = std::prev(it);
-//                 auto cpy = *prev;
-//                 cpy.push_back(n);
-//                 while (it != vecs.end() && it->size() == cpy.size())
-//                     it = vecs.erase(it);
-//                 vecs.insert(it, cpy);
-//             }
-//         }
-
-//         std::copy(vecs.back().begin(), vecs.back().end(), std::ostream_iterator<int>(std::cout, " "));
-//         std::cout << std::endl;
-        
-//         return vecs.back().size();
-//     }
-// };
-
 #include <iostream>
 #include <vector>
-#include <climits>
-#include <utility>
-#include <algorithm>
 #include <iterator>
+#include <algorithm>
+
+namespace std {
+    std::ostream & operator<<(std::ostream & os, const std::vector<int> & v) {
+        std::copy(v.begin(), v.end(), std::ostream_iterator<int>(os, " "));
+        return os;
+    }
+}
 
 class solution {
   public:
     int lengthOfLIS(const std::vector<int> & nums) {
-        std::vector<std::vector<std::pair<int,int>>> piles;
-        for (auto n : nums) {
-            if (piles.empty()) {
-                piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(INT_MIN,n)});
+        std::vector<std::vector<int>> vecs;
+        for (auto & n : nums) {
+            if (vecs.empty()) {
+                vecs.push_back(std::vector<int>{n});
             }
             else {
-                auto it = piles.begin();
-                while (it != piles.end() && it->back().second < n)
-                    ++it;
-                if (it == piles.end()) {
-                    piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(std::prev(it)->back().second,n)});
+                if (std::all_of(vecs.begin(), vecs.end(), [&](const std::vector<int> & v){return v.back() > n;})) {
+                    vecs.push_back(std::vector<int>{n});
+                }
+                else if (std::all_of(vecs.begin(), vecs.end(), [&](const std::vector<int> & v){return v.back() < n;})) {
+                    auto it = std::max_element(vecs.begin(), vecs.end(), [](const std::vector<int> & v1, const std::vector<int> & v2){return v1.size() < v2.size();});
+                    auto temp = *it;
+                    temp.push_back(n);
+                    vecs.emplace_back(std::move(temp));
                 }
                 else {
-                    if (it == piles.begin())
-                        it->push_back(std::make_pair(INT_MIN, n));
-                    else                       
-                        it->push_back(std::make_pair(std::prev(it)->back().second, n));
+                    auto it = vecs.begin();
+                    while (it != vecs.end() && it->back() > n)
+                        ++it;
+                    auto curr = std::next(it);
+                    while (curr != vecs.end()) {
+                        if (curr->back() < n && curr->size() > it->size())
+                            it = curr;
+                        ++curr;
+                    }
+
+                    it->push_back(n);
+                    
+                    size_t len = it->size();
+                    auto jt = vecs.begin();
+                    while (jt != vecs.end()) {
+                        if (jt != it && jt->size() == len)
+                            jt = vecs.erase(jt);
+                        else
+                            ++jt;
+                    }
                 }
             }
-        }
+            // std::copy(vecs.begin(), vecs.end(), std::ostream_iterator<std::vector<int>>(std::cout, "\n"));
+            // std::cout << std::endl;
+        }        
 
-        std::vector<int> lis;
-        auto it = piles.rbegin();
-        int next = it->back().second;
-        while (it != piles.rend()) {
-            auto ite = std::find_if(it->begin(), it->end(), [&](const std::pair<int,int> & p){ return p.second == next;});
-            lis.insert(lis.begin(), next);
-            ++it;
-            next = ite->first;
-        }
-        std::copy(lis.begin(), lis.end(), std::ostream_iterator<int>(std::cout, " "));
+        std::cout << "One of the longest increasing subsequences is:\n";
+        auto it = std::max_element(vecs.begin(), vecs.end(), [](const std::vector<int> & v1, const std::vector<int> & v2){return v1.size() < v2.size();});        
+        std::copy(it->begin(), it->end(), std::ostream_iterator<int>(std::cout, " "));
         std::cout << std::endl;
-
-        return piles.size();
+        
+        return it->size();
     }
 };
 
+// #include <iostream>
+// #include <vector>
+// #include <climits>
+// #include <utility>
+// #include <algorithm>
+// #include <iterator>
+
+// class solution {
+//   public:
+//     int lengthOfLIS(const std::vector<int> & nums) {
+//         std::vector<std::vector<std::pair<int,int>>> piles;
+//         for (auto n : nums) {
+//             if (piles.empty()) {
+//                 piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(INT_MIN,n)});
+//             }
+//             else {
+//                 auto it = piles.begin();
+//                 while (it != piles.end() && it->back().second < n)
+//                     ++it;
+//                 if (it == piles.end()) {
+//                     piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(std::prev(it)->back().second,n)});
+//                 }
+//                 else {
+//                     if (it == piles.begin())
+//                         it->push_back(std::make_pair(INT_MIN, n));
+//                     else                       
+//                         it->push_back(std::make_pair(std::prev(it)->back().second, n));
+//                 }
+//             }
+//         }
+
+//         std::vector<int> lis;
+//         auto it = piles.rbegin();
+//         int next = it->back().second;
+//         while (it != piles.rend()) {
+//             auto ite = std::find_if(it->begin(), it->end(), [&](const std::pair<int,int> & p){ return p.second == next;});
+//             lis.push_back(next);
+//             ++it;
+//             next = ite->first;
+//         }
+//         std::copy(lis.rbegin(), lis.rend(), std::ostream_iterator<int>(std::cout, " "));
+//         std::cout << std::endl;
+
+//         return piles.size();
+//     }
+// };
+
 int main() {
-    std::vector<int> nums{10,9,2,5,3,7,101,18};
+    // std::vector<int> nums{10,9,2,5,3,7,101,18};
+    std::vector<int> nums{6,3,5,10,11,2,9,14,13,7,4,8,12};
 
     solution soln;
     int maxlen = soln.lengthOfLIS(nums);
