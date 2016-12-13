@@ -78,69 +78,165 @@
 //     }
 // };
 
+// // O(n^2) solution
+// #include <iostream>
+// #include <vector>
+// #include <algorithm>
+// #include <iterator>
+// #include <unordered_map>
+
+// namespace std {
+//     std::ostream & operator<<(std::ostream & os, const std::pair<size_t, int> & p) {
+//         os << p.first << " -> " << p.second;
+//         return os;
+//     }
+// }
+
+// class solution {
+//   public:
+//     int lengthOfLIS(const std::vector<int> & nums) {
+//         // auto cpy = nums;
+//         // std::copy(nums.begin(), nums.end(), std::ostream_iterator<int>(std::cout, " "));
+//         // std::cout << std::endl;
+//         // auto it = std::stable_partition(cpy.begin()+1, cpy.end(),
+//         //                       [&](int i){
+//         //                           return i < cpy[0];
+//         //                       });
+//         // std::copy(cpy.begin(), cpy.end(), std::ostream_iterator<int>(std::cout, " "));
+//         // std::cout << std::endl;
+//         // std::cout << "Starting from " << *it << std::endl;
+//         // return 0;
+
+
+//         std::vector<int> cands;
+//         for (size_t i = 0; i < nums.size(); i++)
+//             if (std::all_of(dict.begin(), dict.end(), [&](const std::pair<size_t,int> & p){return nums[i] < nums[p.first];})) {
+//                 std::cout << i << std::endl;
+//                 // dict.insert(std::make_pair(i, lengthFrom(nums, i)));
+//                 cands.push_back(lengthFrom(nums, i));
+//             }
+
+//         // std::copy(dict.begin(), dict.end(), std::ostream_iterator<std::pair<size_t,int>>(std::cout, "\n"));
+        
+//         // auto it = std::max_element(dict.begin(), dict.end(),
+//         //                            [](const std::pair<size_t,int> & p1, const std::pair<size_t,int> & p2){return p1.second < p2.second;});
+//         // return it->second;
+//         return *std::max_element(cands.begin(), cands.end());
+//     }
+
+//   private:
+//     int lengthFrom(const std::vector<int> & nums, size_t start) {
+//         if (dict.find(start) == dict.end()) {
+//             int len = 0;
+//             if (start == nums.size()-1)
+//                 len = 1;
+//             else if (start < nums.size()-1){
+//                 std::vector<int> vec;
+//                 for (size_t i = start+1; i < nums.size(); i++)
+//                     if (nums[i] > nums[start])
+//                         vec.push_back(lengthFrom(nums, i)+1);
+//                 if (!vec.empty())
+//                     len = *std::max_element(vec.begin(), vec.end());
+//                 else
+//                     len = 1;
+//             }
+//             dict[start] = len;
+//         }
+//         return dict[start];
+//     }
+
+//   private:
+//     std::unordered_map<size_t,int> dict;
+// };
+
 // O(nlog(n)) solution
+// #include <iostream>
+// #include <vector>
+// #include <iterator>
+// #include <algorithm>
+
+// class solution {
+//   public:
+//     int lengthOfLIS(const std::vector<int> & nums) {
+//         std::vector<std::vector<int>> vecs;
+//         for (auto & n : nums) {
+//             if (vecs.empty()) {
+//                 vecs.push_back(std::vector<int>{n});
+//                 continue;
+//             }
+//             auto it = vecs.begin();
+//             while (it != vecs.end() && it->back() < n)
+//                 ++it;
+//             if (it == vecs.end()) {
+//                 auto temp = vecs.back();
+//                 temp.push_back(n);
+//                 vecs.emplace_back(std::move(temp));
+//             }
+//             else if (it == vecs.begin()) {
+//                 vecs.insert(vecs.begin(), std::vector<int>{n});
+//             }
+//             else {
+//                 auto prev = std::prev(it);
+//                 auto cpy = *prev;
+//                 cpy.push_back(n);
+//                 while (it != vecs.end() && it->size() == cpy.size())
+//                     it = vecs.erase(it);
+//                 vecs.insert(it, cpy);
+//             }
+//         }
+
+//         std::copy(vecs.back().begin(), vecs.back().end(), std::ostream_iterator<int>(std::cout, " "));
+//         std::cout << std::endl;
+        
+//         return vecs.back().size();
+//     }
+// };
+
 #include <iostream>
 #include <vector>
+#include <climits>
+#include <utility>
 #include <algorithm>
 #include <iterator>
-#include <unordered_map>
-
-namespace std {
-    std::ostream & operator<<(std::ostream & os, const std::pair<size_t, int> & p) {
-        os << p.first << " -> " << p.second;
-        return os;
-    }
-}
 
 class solution {
   public:
     int lengthOfLIS(const std::vector<int> & nums) {
-        // auto cpy = nums;
-        // std::copy(nums.begin(), nums.end(), std::ostream_iterator<int>(std::cout, " "));
-        // std::cout << std::endl;
-        // auto it = std::stable_partition(cpy.begin()+1, cpy.end(),
-        //                       [&](int i){
-        //                           return i < cpy[0];
-        //                       });
-        // std::copy(cpy.begin(), cpy.end(), std::ostream_iterator<int>(std::cout, " "));
-        // std::cout << std::endl;
-        // std::cout << "Starting from " << *it << std::endl;
-        // return 0;
-
-
-        for (size_t i = 0; i < nums.size(); i++)
-            if (std::all_of(dict.begin(), dict.end(), [&](const std::pair<size_t,int> & p){return nums[i] < nums[p.first];}))
-                dict.insert(std::make_pair(i, lengthFrom(nums, i)));
-
-        std::copy(dict.begin(), dict.end(), std::ostream_iterator<std::pair<size_t,int>>(std::cout, "\n"));
-        
-        auto it = std::max_element(dict.begin(), dict.end(), [](const std::pair<size_t,int> & p1, const std::pair<size_t,int> & p2){return p1.second < p2.second;});
-        return it->second;
-    }
-
-  private:
-    int lengthFrom(const std::vector<int> & nums, size_t start) {
-        if (dict.find(start) == dict.end()) {
-            int len = 0;
-            if (start == nums.size()-1)
-                len = 1;
-            else if (start < nums.size()-1){
-                std::vector<int> vec;
-                for (size_t i = start+1; i < nums.size(); i++)
-                    if (nums[i] > nums[start])
-                        vec.push_back(lengthFrom(nums, i)+1);
-                if (!vec.empty())
-                    len = *std::max_element(vec.begin(), vec.end());
-                else
-                    len = 1;
+        std::vector<std::vector<std::pair<int,int>>> piles;
+        for (auto n : nums) {
+            if (piles.empty()) {
+                piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(INT_MIN,n)});
             }
-            dict[start] = len;
+            else {
+                auto it = piles.begin();
+                while (it != piles.end() && it->back().second < n)
+                    ++it;
+                if (it == piles.end()) {
+                    piles.push_back(std::vector<std::pair<int,int>>{std::make_pair(std::prev(it)->back().second,n)});
+                }
+                else {
+                    if (it == piles.begin())
+                        it->push_back(std::make_pair(INT_MIN, n));
+                    else                       
+                        it->push_back(std::make_pair(std::prev(it)->back().second, n));
+                }
+            }
         }
-        return dict[start];
-    }
 
-  private:
-    std::unordered_map<size_t,int> dict;
+        std::vector<int> lis;
+        auto it = piles.rbegin();
+        int next = it->back().second;
+        while (it != piles.rend()) {
+            auto ite = std::find_if(it->begin(), it->end(), [&](const std::pair<int,int> & p){ return p.second == next;});
+            lis.insert(lis.begin(), next);
+            ++it;
+            next = ite->first;
+        }
+        std::copy(lis.begin(), lis.end(), std::ostream_iterator<int>(std::cout, " "));
+        std::cout << std::endl;
+
+        return piles.size();
+    }
 };
 
 int main() {
